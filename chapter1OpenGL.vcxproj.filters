@@ -67,6 +67,7 @@
     <None Include="shader.vs" />
     <None Include="shader.fs" />
     <None Include="chapter1OpenGL.aps" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
