@@ -102,19 +102,23 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     //initial our solar system with CPU and 500 particles
-    //CPUSystem ms("./resource/data/c_0000_500.csv");
+    CPUSystem Cms("./resource/data/c_0000_500.csv");
     //initial our solar system with GPU and 500 particles
-    //GPUSystem ms("./resource/data/c_0000_500.csv");
+    GPUSystem Gms("./resource/data/c_0000_500.csv");
     //initial our solar system with CPU and 2000 particles
     //CPUSystem ms("./resource/data/c_0000_2000.csv");
     //initial our solar system with GPU and 2000 particles
-    GPUSystem ms("./resource/data/c_0000_2000.csv");
+    //GPUSystem ms("./resource/data/c_0000_2000.csv");
 
     //initial our solar system with CPU and 20 particles
     //CPUSystem ms("./resource/data/c_0000_500.csv",20);
     
-    //show the information of the system
-    ms.showInfo();
+    //check the correctness of the GPU version
+    //for (int i = 0; i < 20; i++) {
+    //    Cms.iterate();
+    //    Gms.iterate();
+    //    cout << Cms.matchUp(Gms.allBodies) << endl;
+    //}
 
     while (!glfwWindowShouldClose(window)) {
         //clean buffers
@@ -130,7 +134,7 @@ int main() {
         //frame
         ourShaders.use();
         glBindVertexArray(VAO);
-        for (Body item:ms.getBody()) {
+        for (Body item:Gms.getBody()) {
             glm::mat4 model, view, projection;
             view = glm::lookAt(ourCamera.cameraPos, ourCamera.cameraPos + ourCamera.cameraFro, ourCamera.cameraUp);
             projection = glm::perspective(glm::radians(fov), (float)(widthWindow / heightWindow), 0.1f, 100.0f);
@@ -149,7 +153,7 @@ int main() {
         glfwPollEvents();
 
         //calculate once
-        ms.iterate();
+        Gms.iterate();
     }
 
     glfwTerminate();

@@ -22,6 +22,7 @@ public:
 	void updatePos(float newX, float newY, float newZ);
 	void updateAcc(float3 newAcc);
 	void updateAcc(float newX, float newY, float newZ);
+	bool operator !=(const Body& b);
 	float3 getPos() {
 		return pos;
 	}

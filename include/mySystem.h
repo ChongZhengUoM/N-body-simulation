@@ -21,6 +21,7 @@ public:
 	mySystem(string filename, int countN);
 	mySystem(unsigned int count, int pd, int pu, int dd, int du, int md, int mu);
 	void showInfo();
+	bool matchUp(vector<Body> target);
 	vector<Body> getBody() {
 		return allBodies;
 	}

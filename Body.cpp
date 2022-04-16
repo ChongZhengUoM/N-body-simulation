@@ -55,3 +55,12 @@ void Body::updateAcc(float newX, float newY, float newZ)
 	this->acc.y = newY;
 	this->acc.z = newZ;
 }
+
+bool Body::operator!=(const Body& b)
+{
+	const Body a = *this;
+	bool res = true;
+	res &= (a.pos.x == b.pos.x) & (a.pos.y == b.pos.y) & (a.pos.z == b.pos.z);
+	res &= (a.dir.x == b.dir.x) & (a.dir.y == b.dir.y) & (a.dir.z == b.dir.z);
+	return !res;
+}

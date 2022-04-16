@@ -85,6 +85,16 @@ mySystem::mySystem(string filename, int countN) {
 	inFile.close();
 }
 
+bool mySystem::matchUp(vector<Body> target) {
+	if (target.size() != this->allBodies.size())
+		return false;
+	for (int i = 0; i < target.size(); i++) {
+		if (target[i] != this->allBodies[i])
+			return false;
+	}
+	return true;
+}
+
 void mySystem::showInfo() {
 	cout << "========================================" << endl;
 
