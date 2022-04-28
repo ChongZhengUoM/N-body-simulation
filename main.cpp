@@ -40,7 +40,26 @@ void localScroll(GLFWwindow* window, double xoffset, double yoffset) {
         fov = 45.0f;
 }
 
-int main() {
+int evaluate() {
+    //initial our solar system with CPU and 500 particles
+    //CPUSystem Cms("./resource/data/c_0000_500.csv");
+    //initial our solar system with GPU and 500 particles
+    //GPUSystem Gms("./resource/data/c_0000_500.csv");
+    //initial our solar system with CPU and 2000 particles
+    CPUSystem Cms("./resource/data/c_0000_2000.csv");
+    //initial our solar system with GPU and 2000 particles
+    GPUSystem Gms("./resource/data/c_0000_2000.csv");
+
+    //check the correctness of the GPU version
+    for (int i = 0; i < 20; i++) {
+        Cms.iterate();
+        Gms.iterate();
+        cout << Cms.matchUp(Gms.allBodies) << endl;
+    }
+    return 0;
+}
+
+int visualize() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -101,26 +120,24 @@ int main() {
     //hide cursor
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    //initial our solar system with CPU and 500 particles
-    CPUSystem Cms("./resource/data/c_0000_500.csv");
-    //initial our solar system with GPU and 500 particles
     GPUSystem Gms("./resource/data/c_0000_500.csv");
-    //initial our solar system with CPU and 2000 particles
-    //CPUSystem ms("./resource/data/c_0000_2000.csv");
-    //initial our solar system with GPU and 2000 particles
-    //GPUSystem ms("./resource/data/c_0000_2000.csv");
 
-    //initial our solar system with CPU and 20 particles
-    //CPUSystem ms("./resource/data/c_0000_500.csv",20);
-    
-    //check the correctness of the GPU version
-    //for (int i = 0; i < 20; i++) {
-    //    Cms.iterate();
-    //    Gms.iterate();
-    //    cout << Cms.matchUp(Gms.allBodies) << endl;
-    //}
+    double lastTime = glfwGetTime();
+    int nbFrames = 0;
 
+    // //visualization
     while (!glfwWindowShouldClose(window)) {
+
+        // Measure speed
+        double currentTime = glfwGetTime();
+        nbFrames++;
+        if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
+            // printf and reset timer
+            printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+            nbFrames = 0;
+            lastTime += 1.0;
+        }
+
         //clean buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -158,4 +175,10 @@ int main() {
 
     glfwTerminate();
 	return 0;
+}
+
+int main() {
+    //evaluate();
+    visualize();
+    return 0;
 }
