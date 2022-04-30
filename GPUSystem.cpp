@@ -23,8 +23,13 @@ void GPUSystem::loadData2Device() {
 	cudaMemcpy(devMass, hostMass, bodyCount * sizeof(float), cudaMemcpyHostToDevice);
 }
 
-void GPUSystem::iterate() {
-	cuda_kernel(devPos, devDir, devAcc, devMass, bodyCount, sf, G, deltaT);
+void GPUSystem::iterate(int iterNum) {
+	for (int i = 0; i < iterNum; i++) {
+		cuda_kernel(devPos, devDir, devAcc, devMass, bodyCount, sf, G, deltaT);
+	}
+}
+
+void GPUSystem::synchr() {
 	cudaMemcpy(hostPos, devPos, bodyCount * sizeof(float3), cudaMemcpyDeviceToHost);
 	cudaMemcpy(hostDir, devDir, bodyCount * sizeof(float3), cudaMemcpyDeviceToHost);
 	cudaMemcpy(hostAcc, devAcc, bodyCount * sizeof(float3), cudaMemcpyDeviceToHost);

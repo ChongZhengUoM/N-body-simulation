@@ -40,26 +40,47 @@ void localScroll(GLFWwindow* window, double xoffset, double yoffset) {
         fov = 45.0f;
 }
 
-int evaluate() {
-    //initial our solar system with CPU and 500 particles
-    //CPUSystem Cms("./resource/data/c_0000_500.csv");
-    //initial our solar system with GPU and 500 particles
-    //GPUSystem Gms("./resource/data/c_0000_500.csv");
-    //initial our solar system with CPU and 2000 particles
-    CPUSystem Cms("./resource/data/c_0000_2000.csv");
-    //initial our solar system with GPU and 2000 particles
-    GPUSystem Gms("./resource/data/c_0000_2000.csv");
+int evaluate(int bodyNum, int iterateNum) {
+    CPUSystem Cms("./resource/data/c_0000.csv", bodyNum);
+    GPUSystem Gms("./resource/data/c_0000.csv", bodyNum);
+    //unit sec
+    LARGE_INTEGER t1, t2, tc;
+    QueryPerformanceFrequency(&tc);
 
-    //check the correctness of the GPU version
-    for (int i = 0; i < 20; i++) {
-        Cms.iterate();
-        Gms.iterate();
-        cout << Cms.matchUp(Gms.allBodies) << endl;
-    }
+    //CPU
+    QueryPerformanceCounter(&t1);
+    Cms.iterate(iterateNum);
+    QueryPerformanceCounter(&t2);
+    double t_CPU = (double)(t2.QuadPart - t1.QuadPart) / (double)tc.QuadPart;
+    
+    //GPU_1 -> transfer data to GPU
+    QueryPerformanceCounter(&t1);
+    Gms.loadData2Device();
+    QueryPerformanceCounter(&t2);
+    double t_GPU_1 = (double)(t2.QuadPart - t1.QuadPart) / (double)tc.QuadPart;
+    //GPU_2 -> iterations
+    QueryPerformanceCounter(&t1);
+    Gms.iterate(iterateNum);
+    QueryPerformanceCounter(&t2);
+    double t_GPU_2 = (double)(t2.QuadPart - t1.QuadPart) / (double)tc.QuadPart;
+    //GPU_3 -> transfer data back to CPU
+    QueryPerformanceCounter(&t1);
+    Gms.synchr();
+    QueryPerformanceCounter(&t2);
+    double t_GPU_3 = (double)(t2.QuadPart - t1.QuadPart) / (double)tc.QuadPart;
+
+    //report
+    cout << "[+]ACCURACY:" << Cms.matchUp(Gms.allBodies) << endl;
+    cout << " CPU runtime:" << t_CPU << "sec" << endl;
+    cout << " CPU runtime:" << t_GPU_1 << "sec\t" << t_GPU_2 << "sec\t" << t_GPU_3 << "sec" << endl;
+
+    cout << "[+]Speedup without data transfer:" << t_CPU/t_GPU_2 << endl;
+    cout << "[+]Speedup with data transfer:" << t_CPU/(t_GPU_1+t_GPU_2+t_GPU_3) << endl;
     return 0;
 }
 
-int visualize() {
+/*
+int visualize(int bodyNum) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -100,7 +121,7 @@ int visualize() {
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, bodyNum * sizeof(float3), Gms.hostPos, GL_STREAM_DRAW);
 
     //VBO
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -120,10 +141,10 @@ int visualize() {
     //hide cursor
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    GPUSystem Gms("./resource/data/c_0000_500.csv");
-
     double lastTime = glfwGetTime();
     int nbFrames = 0;
+
+    GPUSystem Gms("./resource/data/c_0000.csv", bodyNum);
 
     // //visualization
     while (!glfwWindowShouldClose(window)) {
@@ -133,7 +154,7 @@ int visualize() {
         nbFrames++;
         if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
             // printf and reset timer
-            printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+            printf("FPS:\t%d\n", nbFrames);
             nbFrames = 0;
             lastTime += 1.0;
         }
@@ -147,22 +168,22 @@ int visualize() {
         localInput(window);
 
         //size of points
-        glPointSize(1.0f);
+        glPointSize(5.0f);
         //frame
         ourShaders.use();
         glBindVertexArray(VAO);
-        for (Body item:Gms.getBody()) {
+        for (body item:Gms.getbody()) {
             glm::mat4 model, view, projection;
-            view = glm::lookAt(ourCamera.cameraPos, ourCamera.cameraPos + ourCamera.cameraFro, ourCamera.cameraUp);
-            projection = glm::perspective(glm::radians(fov), (float)(widthWindow / heightWindow), 0.1f, 100.0f);
+            view = glm::lookat(ourcamera.camerapos, ourcamera.camerapos + ourcamera.camerafro, ourcamera.cameraup);
+            projection = glm::perspective(glm::radians(fov), (float)(widthwindow / heightwindow), 0.1f, 100.0f);
 
-            model = glm::translate(model, glm::vec3(item.getPos().x, item.getPos().y, item.getPos().z));
+            model = glm::translate(model, glm::vec3(item.getpos().x, item.getpos().y, item.getpos().z));
 
-            glUniformMatrix4fv(glGetUniformLocation(ourShaders.ID, "modelT"), 1, GL_FALSE, glm::value_ptr(model));
-            glUniformMatrix4fv(glGetUniformLocation(ourShaders.ID, "viewT"), 1, GL_FALSE, glm::value_ptr(view));
-            glUniformMatrix4fv(glGetUniformLocation(ourShaders.ID, "projT"), 1, GL_FALSE, glm::value_ptr(projection));
+            gluniformmatrix4fv(glgetuniformlocation(ourshaders.id, "modelt"), 1, gl_false, glm::value_ptr(model));
+            gluniformmatrix4fv(glgetuniformlocation(ourshaders.id, "viewt"), 1, gl_false, glm::value_ptr(view));
+            gluniformmatrix4fv(glgetuniformlocation(ourshaders.id, "projt"), 1, gl_false, glm::value_ptr(projection));
 
-            glDrawArrays(GL_POINTS, 0, 1);
+            gldrawarrays(gl_points, 0, 1);
         }
 
         //swap buffers
@@ -170,15 +191,17 @@ int visualize() {
         glfwPollEvents();
 
         //calculate once
-        Gms.iterate();
+        Gms.iterate(1);
+        Gms.synchr();
     }
 
     glfwTerminate();
 	return 0;
 }
+*/
 
 int main() {
-    //evaluate();
-    visualize();
+    evaluate(2000,20);
+    //visualize(2000);
     return 0;
 }

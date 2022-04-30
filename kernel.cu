@@ -42,11 +42,12 @@ __global__ void calc_Update(float3* devPos, float3* devDir, float3* devAcc, int 
 	}
 }
 
-extern "C" void cuda_kernel(float3 * devPos, float3 * devDir, float3 * devAcc, float* devMass, int bodyCount, float sf, float G, float deltaT) {
+extern "C" int cuda_kernel(float3 * devPos, float3 * devDir, float3 * devAcc, float* devMass, int bodyCount, float sf, float G, float deltaT) {
 	dim3 blockSize = 1024;
 	dim3 gridSize = bodyCount / 1024 + (bodyCount % 1024 != 0);
 	calc_Acc <<<gridSize, blockSize >>> (devPos, devAcc, devMass, bodyCount, sf, G);
 	cudaDeviceSynchronize();
 	calc_Update <<<gridSize, blockSize >>> (devPos, devDir, devAcc, bodyCount, deltaT);
 	cudaDeviceSynchronize();
+	return 0;
 }
